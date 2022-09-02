@@ -10,9 +10,13 @@ import Login from '@/views/Login'
 import Register from '@/views/Register'
 
 const originalPush = VueRouter.prototype.push
+const originalReplace = VueRouter.prototype.replace
 
 VueRouter.prototype.push = function push(location) {
   return originalPush.call(this, location).catch((err) => err)
+}
+VueRouter.prototype.replace = function replace(location) {
+  return originalReplace.call(this, location).catch((err) => err)
 }
 
 // 配置路由
@@ -20,19 +24,24 @@ export default new VueRouter({
   routes: [
     {
       path: '/home',
-      component: Home
+      component: Home,
+      meta: { show: true }
     },
     {
       path: '/login',
-      component: Login
+      component: Login,
+      meta: { show: false }
     },
     {
       path: '/register',
-      component: Register
+      component: Register,
+      meta: { show: false }
     },
     {
-      path: '/search',
-      component: Search
+      path: '/search/:keyword',
+      component: Search,
+      meta: { show: true },
+      name: 'search'
     },
     // 重定向
     {
