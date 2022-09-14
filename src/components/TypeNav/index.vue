@@ -1,39 +1,50 @@
 <template>
   <div class="type-nav">
     <div class="container">
-      <div @mouseleave="leaveIndex">
+      <div @mouseleave="leave" @mouseenter="enter">
         <h2 class="all">全部商品分类</h2>
-        <div class="sort">
-          <div class="all-sort-list2">
-            <div
-              class="item"
-              v-for="(c1, index) in categoryList"
-              :key="c1.categoryId"
-              :class="{ cur: currentIndex === index }"
-            >
-              <h3 @mouseenter="changeIndex(index)">
-                <a href="">{{ c1.categoryName }}</a>
-              </h3>
+        <!-- 过渡动画 -->
+        <transition name="sort">
+          <div class="sort" v-show="show">
+            <div class="all-sort-list2" @click="goSearch">
               <div
-                class="item-list clearfix"
-                :style="{ display: currentIndex === index ? 'block' : 'none' }"
+                class="item"
+                v-for="(c1, index) in categoryList"
+                :key="c1.categoryId"
+                :class="{ cur: currentIndex === index }"
               >
-                <div class="subitem" v-for="(c2, index) in c1.categoryChild" :key="c2.categoryId">
-                  <dl class="fore">
-                    <dt>
-                      <a href="">{{ c2.categoryName }}</a>
-                    </dt>
-                    <dd>
-                      <em v-for="(c3, index) in c2.categoryChild" :key="c3.categoryId">
-                        <a href="">{{ c3.categoryName }}</a>
-                      </em>
-                    </dd>
-                  </dl>
+                <h3 @mouseenter="changeIndex(index)">
+                  <a :data-categoryName="c1.categoryName" :data-category1Id="c1.categoryId">{{
+                    c1.categoryName
+                  }}</a>
+                </h3>
+                <div
+                  class="item-list clearfix"
+                  :style="{ display: currentIndex === index ? 'block' : 'none' }"
+                >
+                  <div class="subitem" v-for="(c2, index) in c1.categoryChild" :key="c2.categoryId">
+                    <dl class="fore">
+                      <dt>
+                        <a :data-categoryName="c2.categoryName" :data-category2Id="c2.categoryId">{{
+                          c2.categoryName
+                        }}</a>
+                      </dt>
+                      <dd>
+                        <em v-for="(c3, index) in c2.categoryChild" :key="c3.categoryId">
+                          <a
+                            :data-categoryName="c3.categoryName"
+                            :data-category3Id="c3.categoryId"
+                            >{{ c3.categoryName }}</a
+                          >
+                        </em>
+                      </dd>
+                    </dl>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        </transition>
       </div>
       <nav class="nav">
         <a href="###">服装城</a>
@@ -52,16 +63,21 @@
 <script>
 import { mapState } from 'vuex'
 import throttle from 'lodash/throttle'
+import router from '@/router'
 export default {
   name: 'TypeNav',
   data() {
     return {
       // 存储移动的索引
-      currentIndex: -1
+      currentIndex: -1,
+      // 商品分类列表是否展示
+      show: true
     }
   },
   mounted() {
-    this.$store.dispatch('categoryList')
+    if (this.$route.path !== '/home') {
+      this.show = false
+    }
   },
   computed: {
     ...mapState({
@@ -72,9 +88,42 @@ export default {
     changeIndex: throttle(function (index) {
       this.currentIndex = index
     }, 50),
-    // 一级分类鼠标移出事件回调
-    leaveIndex() {
+
+    // 动态路由跳转
+    goSearch(event) {
+      let element = event.target
+
+      let { categoryname, category1id, category2id, category3id } = element.dataset
+
+      if (categoryname) {
+        let location = { name: 'search' }
+        let query = { categoryName: categoryname }
+
+        if (category1id) {
+          query.category1Id = category1id
+        } else if (category2id) {
+          query.category2Id = category2id
+        } else {
+          query.category3Id = category3id
+        }
+        location.query = query
+        // 判断有没有params参数,如果有也带过去
+        if (this.$route.params) {
+          location.params = this.$route.params
+          this.$router.push(location)
+        }
+      }
+    },
+    // 鼠标移入展示商品分类列表
+    enter() {
+      this.show = true
+    },
+    // 鼠标移出隐藏商品分类列表
+    leave() {
       this.currentIndex = -1
+      if (this.$route.path !== '/home') {
+        this.show = false
+      }
     }
   }
 }
@@ -194,6 +243,22 @@ export default {
           background-color: skyblue;
         }
       }
+    }
+
+    // 过渡动画的样式
+    // 进入样式
+    .sort-enter {
+      height: 0px;
+    }
+
+    // 结束
+    .sort-enter-to {
+      height: 461px;
+    }
+
+    // 定义动画的时间、速率
+    .sort-enter-active {
+      transition: all 0.5s linear;
     }
   }
 }

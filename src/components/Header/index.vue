@@ -61,16 +61,12 @@ export default {
   },
   methods: {
     goSearch() {
-      // this.$router.push('/search')
-      this.$router.push({
-        name: 'search',
-        params: {
-          keyword: this.keyword
-        },
-        query: {
-          k: this.keyword
-        }
-      })
+      let location = { name: 'search', params: { keyword: this.keyword || undefined } }
+      // 判断有没有query参数,如果有也带过去
+      if (this.$route.query) {
+        location.query = this.$route.query
+      }
+      this.$router.push(location)
     }
   }
 }
