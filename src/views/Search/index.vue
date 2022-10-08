@@ -11,38 +11,34 @@
             </li>
           </ul>
           <ul class="fl sui-tag">
-            <li class="with-x">手机</li>
-            <li class="with-x">iphone<i>×</i></li>
-            <li class="with-x">华为<i>×</i></li>
-            <li class="with-x">OPPO<i>×</i></li>
+            <li class="with-x" v-if="searchParams.categoryName">
+              {{ searchParams.categoryName }}<i @click="removeCategoryName">×</i>
+            </li>
+            <li class="with-x" v-if="searchParams.keyword">
+              {{ searchParams.keyword }}<i @click="removeKeyword">×</i>
+            </li>
+            <li class="with-x" v-if="searchParams.trademark">
+              {{ searchParams.trademark.split(':')[1] }}<i @click="removeTrademark">×</i>
+            </li>
+            <li class="with-x" v-for="(attrValue, index) in this.searchParams.props" :key="index">
+              {{ attrValue.split(':')[1] }}<i @click="removeAttr(index)">×</i>
+            </li>
           </ul>
         </div>
 
         <!--selector-->
-        <SearchSelector />
+        <SearchSelector @trademarkInfo="trademarkInfo" @attrInfo="attrInfo" />
 
         <!--details-->
         <div class="details clearfix">
           <div class="sui-navbar">
             <div class="navbar-inner filter">
               <ul class="sui-nav">
-                <li class="active">
-                  <a href="#">综合</a>
+                <li :class="{ active: isOne }">
+                  <a>综合</a>
                 </li>
-                <li>
-                  <a href="#">销量</a>
-                </li>
-                <li>
-                  <a href="#">新品</a>
-                </li>
-                <li>
-                  <a href="#">评价</a>
-                </li>
-                <li>
-                  <a href="#">价格⬆</a>
-                </li>
-                <li>
-                  <a href="#">价格⬇</a>
+                <li :class="{ active: isTwo }">
+                  <a>价格</a>
                 </li>
               </ul>
             </div>
@@ -152,11 +148,69 @@ export default {
     this.getSearchData()
   },
   computed: {
-    ...mapGetters(['goodsList'])
+    ...mapGetters(['goodsList']),
+    isOne() {
+      return this.searchParams.order.split(':')[0].indexOf(1) != -1
+    },
+    isTwo() {
+      return this.searchParams.order.split(':')[0].indexOf(2) != -1
+    }
   },
   methods: {
     getSearchData() {
       this.$store.dispatch('getSearchList', this.searchParams)
+    },
+    removeCategoryName() {
+      this.searchParams.category1Id = undefined
+      this.searchParams.category2Id = undefined
+      this.searchParams.category3Id = undefined
+      this.searchParams.categoryName = undefined
+      this.getSearchData()
+      if (this.$route.params) {
+        this.$router.push({
+          name: 'search',
+          params: this.$route.params
+        })
+      }
+    },
+    removeKeyword() {
+      this.searchParams.keyword = undefined
+      this.getSearchData()
+      // 通知兄弟组件Header清楚关键字
+      this.$bus.$emit('clearKeyword')
+      if (this.$route.query) {
+        this.$router.push({
+          name: 'search',
+          query: this.$route.query
+        })
+      }
+    },
+    // 自定义事件回调
+    trademarkInfo(trademark) {
+      this.searchParams.trademark = `${trademark.tmId}:${trademark.tmName}`
+      this.getSearchData()
+    },
+    removeTrademark() {
+      this.searchParams.trademark = undefined
+      this.getSearchData()
+    },
+    attrInfo(attr, attrChild) {
+      let props = `${attr.attrId}:${attrChild}:${attr.attrName}`
+      if (this.searchParams.props.indexOf(props) == -1) this.searchParams.props.push(props)
+      this.getSearchData()
+    },
+    removeAttr(index) {
+      this.searchParams.props.splice(index, 1)
+      this.getSearchData()
+    }
+  },
+  watch: {
+    $route(newValue, oldValue) {
+      Object.assign(this.searchParams, this.$route.query, this.$route.params)
+      this.getSearchData()
+      this.searchParams.category1Id = undefined
+      this.searchParams.category2Id = undefined
+      this.searchParams.category3Id = undefined
     }
   }
 }
