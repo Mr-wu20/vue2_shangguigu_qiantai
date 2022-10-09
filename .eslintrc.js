@@ -14,6 +14,7 @@ module.exports = {
     sourceType: 'module'
   },
   plugins: ['vue'],
+  parser: 'vue-eslint-parser',
   rules: {
     'import/no-unresolved': 'off',
     'import/extensions': 'off',

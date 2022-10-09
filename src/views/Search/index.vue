@@ -35,10 +35,22 @@
             <div class="navbar-inner filter">
               <ul class="sui-nav">
                 <li :class="{ active: isOne }">
-                  <a>综合</a>
+                  <a @click="changeOrder(1)"
+                    >综合<span
+                      v-show="isOne"
+                      class="iconfont"
+                      :class="{ 'icon-UP': isAsc, 'icon-DOWN': isDesc }"
+                    ></span
+                  ></a>
                 </li>
                 <li :class="{ active: isTwo }">
-                  <a>价格</a>
+                  <a @click="changeOrder(2)"
+                    >价格<span
+                      v-show="isTwo"
+                      class="iconfont"
+                      :class="{ 'icon-UP': isAsc, 'icon-DOWN': isDesc }"
+                    ></span
+                  ></a>
                 </li>
               </ul>
             </div>
@@ -80,35 +92,14 @@
               </li>
             </ul>
           </div>
-          <div class="fr page">
-            <div class="sui-pagination clearfix">
-              <ul>
-                <li class="prev disabled">
-                  <a href="#">«上一页</a>
-                </li>
-                <li class="active">
-                  <a href="#">1</a>
-                </li>
-                <li>
-                  <a href="#">2</a>
-                </li>
-                <li>
-                  <a href="#">3</a>
-                </li>
-                <li>
-                  <a href="#">4</a>
-                </li>
-                <li>
-                  <a href="#">5</a>
-                </li>
-                <li class="dotted"><span>...</span></li>
-                <li class="next">
-                  <a href="#">下一页»</a>
-                </li>
-              </ul>
-              <div><span>共10页&nbsp;</span></div>
-            </div>
-          </div>
+          <!-- 分页器 -->
+          <Pagination
+            :pageNo="searchParams.pageNo"
+            :pageSize="searchParams.pageSize"
+            :total="total"
+            :continues="5"
+            @getPageNo="getPageNo"
+          />
         </div>
       </div>
     </div>
@@ -117,7 +108,7 @@
 
 <script>
 import SearchSelector from './SearchSelector/SearchSelector'
-import { mapGetters } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 export default {
   name: 'Search',
@@ -154,7 +145,16 @@ export default {
     },
     isTwo() {
       return this.searchParams.order.split(':')[0].indexOf(2) != -1
-    }
+    },
+    isDesc() {
+      return this.searchParams.order.indexOf('desc') != -1
+    },
+    isAsc() {
+      return this.searchParams.order.indexOf('asc') != -1
+    },
+    ...mapState({
+      total: (state) => state.search.searchList.total
+    })
   },
   methods: {
     getSearchData() {
@@ -201,6 +201,26 @@ export default {
     },
     removeAttr(index) {
       this.searchParams.props.splice(index, 1)
+      this.getSearchData()
+    },
+    changeOrder(flag) {
+      let order = this.searchParams.order
+      let one = this.searchParams.order.split(':')[0]
+      let two = this.searchParams.order.split(':')[1]
+
+      let newOrder = ''
+      if (flag == one) {
+        newOrder = `${one}:${two == 'desc' ? 'asc' : 'desc'}`
+      } else {
+        newOrder = `${flag}:desc`
+      }
+
+      this.searchParams.order = newOrder
+
+      this.getSearchData()
+    },
+    getPageNo(page) {
+      this.searchParams.pageNo = page
       this.getSearchData()
     }
   },

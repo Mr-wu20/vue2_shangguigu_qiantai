@@ -3,12 +3,13 @@ import App from './App.vue'
 
 // 注册全局组件
 import TypeNav from '@/components/TypeNav'
+import Carousel from '@/components/Carousel'
+import Pagination from '@/components/Pagination'
+
 // 第一个参数是组件的name,第二个参数是组件
 Vue.component(TypeNav.name, TypeNav)
-
-import Carousel from '@/components/Carousel'
 Vue.component(Carousel.name, Carousel)
-
+Vue.component(Pagination.name, Pagination)
 // 引入mock数据
 import '@/mock/mockServe'
 
