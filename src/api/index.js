@@ -18,3 +18,6 @@ export const reqSearchList = (params) =>
     method: 'post',
     data: params
   })
+
+// 获取产品的详情信息
+export const reqGoodsInfo = (skuId) => requests.get(`/item/${skuId}`)
